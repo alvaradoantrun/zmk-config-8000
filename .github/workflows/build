@@ -1,0 +1,43 @@
+name: Build ZMK firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    steps:
+      - name: Checkout config
+        uses: actions/checkout@v4
+
+      - name: Initialize west (use repo's manifest)
+        run: |
+          set -eux
+          west init -l .
+          west update
+          west zephyr-export
+
+      - name: Build - Right (central)
+        run: |
+          set -eux
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD=mysplit_right
+          cp -v build/zephyr/zmk.uf2 "mysplit_right-nice_nano_v2.uf2"
+
+      - name: Build - Left (peripheral)
+        run: |
+          set -eux
+          west build -s zmk/app -b nice_nano_v2 -- -DSHIELD=mysplit_left -DOVERLAY_CONFIG=""
+          cp -v build/zephyr/zmk.uf2 "mysplit_left-nice_nano_v2.uf2"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zmk-firmware
+          path: |
+            mysplit_right-nice_nano_v2.uf2
+            mysplit_left-nice_nano_v2.uf2
