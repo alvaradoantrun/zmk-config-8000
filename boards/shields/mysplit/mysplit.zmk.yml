@@ -1,0 +1,11 @@
+file_format: "1"
+id: mysplit
+name: MySplit
+type: shield
+url: ""
+requires: [nice_nano_v2, nice_nano]
+siblings:
+  - mysplit_left
+  - mysplit_right
+features:
+  - keys
